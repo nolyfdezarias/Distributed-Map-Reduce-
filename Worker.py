@@ -3,7 +3,7 @@ from utils import *
 
 class Worker():
     #def __init__(self,host,serverHost,pull_port):
-    def __init__(self,bPORT):
+    def __init__(self):
         #self.serverHost = serverHost
         __address = QNetworkInterface.allAddresses()
         ip = __address[2].toString()
@@ -112,5 +112,5 @@ class Worker():
 
 
 #a = Worker(host = input('-My ip '),serverHost=input('> Master adress ') , pull_port = int(input('> master pullport ')))
-a = Worker(bPORT=int(input('> BroadCastPort : ')))
+a = Worker()
 a()

@@ -3,7 +3,7 @@ from utils import *
 
 class Client():
     #def __init__(self,host,serverHost,pull_port,data):
-    def __init__(self,bPort,data):
+    def __init__(self,data):
         #self.serverHost = serverHost
         __address = QNetworkInterface.allAddresses()
         ip = __address[2].toString()
@@ -127,5 +127,5 @@ class Client():
                 break
 
 #a = Client(host = input('- My ip adress '),serverHost=input('> Master adress ') , pull_port = int(input('> master pullport ')), data = input('> dame el archivo '))
-a = Client(bPort=int(input('> BroadCastPort : ')), data = input('> dame el archivo '))
+a = Client( data = input('> dame el archivo '))
 a()
