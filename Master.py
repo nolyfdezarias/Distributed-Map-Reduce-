@@ -127,6 +127,7 @@ class Master():
         #c = zmq.Context()
         while True:
             print('I am in the while True')
+            print(len(self.task))
             self.look.acquire()
             if self.leader:
                 self.look.release()
@@ -152,6 +153,7 @@ class Master():
                                 if val :
                                     #print(f'I have finish the task {self.task.pop(0)}')
                                     print('I have finish the task ' + str(self.task.pop(0)))
+                                    #time.sleep(1)
                                     if _type == 0:
                                         
                                         try :
@@ -183,6 +185,10 @@ class Master():
                                         text = f'{_key} : {_value} \n'
                                         fd.write(text)
                                         fd.close()
+                                        
+                                        self.pubMessage(_adress = -1,_port = -1,_type = 'WChange' , _name= location,_message = text)
+
+                                        #self.pubMessage
 
                                         if self.clients_red[(_adress , _port)] == 0:
                                             #print(f'I finish the red with the client {(_adress , _port)}')
@@ -201,13 +207,11 @@ class Master():
                                                     toping = _pingP
                                                     break
                                             
-                                            
                                             for line in lines:
                                                 
                                                 if self.ping(_adress,toping,c):
                                                     sendMessage(c=c,_dadress = _adress,_dport = _port , _type = 'sendAnswer' , _message = line.decode(), _size= len(line),_name=location,_adress = self.host,_port = self.pull_port)
-                                                    self.pubMessage(_adress = -1,_port = -1,_type = 'WChange' , _name= location,_message = line.decode())
-
+                                                    
                                                 else:
                                                     print('Client is Down by Send')
                                                     todel = []
@@ -226,7 +230,7 @@ class Master():
                                                             self.clients_map.pop((_adress , _port))
                                                             self.clients_red.pop((_adress , _port))
                                                             self.clientsFuncs.pop((_adress , _port))
-                                                            self.buffer.pop((_adress , _port))
+                                                            #self.buffer.pop((_adress , _port))
                                                             break
                                                     
                                                     
@@ -250,13 +254,15 @@ class Master():
                                                     self.clients_map.pop((_adress , _port))
                                                     self.clients_red.pop((_adress , _port))
                                                     self.clientsFuncs.pop((_adress , _port))
-                                                    self.buffer.pop((_adress , _port))
+                                                    #self.buffer.pop((_adress , _port))
                                                     break
                                             #for x in todel:
                                             #    self.clients.remove(x)
+                                            self.pubMessage(_adress = -1,_port = -1,_type = 'Change' , _name= 2,_message = (self.task,self.clients_red,self.clients_map,self.clientsFuncs,self.clients))
 
-
+                                        else:
                                             self.pubMessage(_adress = -1,_port = -1,_type = 'Change' , _name= 1,_message = (self.task,self.clients_red))
+                                        
                                         pass
                                 else:
                                     pass
@@ -297,6 +303,7 @@ class Master():
                         self.leader = True
                         
                         print('I am the new Master :) XDDDDD')
+                        print(len(self.task))
                         self.broadcast_server_thread.start()
 
                         self.look.release()
@@ -371,6 +378,7 @@ class Master():
                 self.look.acquire()
                 self.MasterList.append(data[MESSAGE])
                 sendMessage(c=c,_type = 'Welcome' , _message = (self.MasterList,self.workers,self.clients,self.clients_map,self.clients_red,self.clientsFuncs,self.buffer,self.task,self.lastID) ,_dadress = data[ADRESS], _dport = data[PORT] , _adress = self.host , _port =self.pull_port)
+                
                 time.sleep(2)
                 print('I have send the Welcome message')
                 self.look.release()
@@ -391,7 +399,7 @@ class Master():
                 self.task = list(aux8)
                 self.lastID = aux9
 
-                for x in range(0,len(self.MasterList)):
+                for x in range(0,len(self.MasterList)-1):
                     _host , _pull , _pub , _ping = self.MasterList[x]
 
                     sub_addr = zmq_addr(_pub,transport = 'tcp',host = _host)
@@ -485,12 +493,22 @@ class Master():
                     self.clients_map = dict(aux3)
                     self.clients_red = dict(aux4)
                     self.look.release()
-                else: 
+                elif data[NAME] == 1: 
                     self.look.acquire()
                     aux = data[MESSAGE]
                     aux1,aux2= aux
                     self.task = list(aux1)
                     self.clients_red = dict(aux2)
+                    self.look.release()
+                else:
+                    self.look.acquire()
+                    aux = data[MESSAGE]
+                    aux1,aux2,aux3,aux4,aux5 = aux
+                    self.task = list(aux1)
+                    self.clients_red = dict(aux2)
+                    self.clients_map = dict(aux3)
+                    self.clientsFuncs = dict(aux4)
+                    self.clients = list(aux5)
                     self.look.release()
                 
             if _type == 'WChange':
@@ -531,11 +549,13 @@ class Master():
                     dic[key] = [value]
         
         for key in dic.keys():
-            self.task.append((_adress,_port, (key,dic[key]) ,1))
+            self.task.insert(0,(_adress,_port, (key,dic[key]) ,1))
 
+        self.buffer.pop((_adress,_port))
         self.clients_red[(_adress,_port)] = len(self.task) - initVal
         #print(f'the client {_adress}:{_port} needs {len(self.task) - initVal} reducers')
         print('the client ' + _adress + ':' + str(_port) + ' needs ' + str(len(self.task) - initVal) + ' reducers ')
+        #time.sleep(5)
         
         
 
