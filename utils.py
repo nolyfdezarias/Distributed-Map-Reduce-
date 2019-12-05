@@ -95,6 +95,7 @@ def sendTask(_message,_dadress,_dport,_adress,_port , _size = 0 ,c = None, _mapf
         s.send(dataSend,zmq.NOBLOCK)
 
         for i in range(0,RETRYTIME):
+            print(f'Retrytime {i}')
             ans = dict(pol.poll(TIMEOUT))
             if ans != {} :
                 data = s1.recv()
