@@ -379,10 +379,27 @@ class Master():
                 self.MasterList.append(data[MESSAGE])
                 sendMessage(c=c,_type = 'Welcome' , _message = (self.MasterList,self.workers,self.clients,self.clients_map,self.clients_red,self.clientsFuncs,self.buffer,self.task,self.lastID) ,_dadress = data[ADRESS], _dport = data[PORT] , _adress = self.host , _port =self.pull_port)
                 
+                for x in self.clients:
+                    aux,aux1 = x
+                    _a,_p,_,_,_ = aux
+                    location = f'Ans_{_a}_{_p}'
+                    fd = open(os.path.join(location), 'r+b')
+                    lines = fd.readlines()
+                    fd.close()
+                    for line in lines:
+                        sendMessage(c=c,_type = 'Files' , _message = line.decode() , _name=location,_dadress = data[ADRESS], _dport = data[PORT] , _adress = self.host , _port =self.pull_port)
+
+
                 time.sleep(2)
                 print('I have send the Welcome message')
                 self.look.release()
                 pass
+            if _type == 'Files':
+                self.look.acquire()
+                fd = open(os.path.join(data[NAME]), 'a')
+                fd.write(data[MESSAGE])
+                fd.close()
+                self.look.release()
 
             if _type == 'Welcome':
                 self.look.acquire()
