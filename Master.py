@@ -458,7 +458,7 @@ class Master():
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
                 self.pubMessage(_adress =   data[ADRESS] ,_port = data[PORT] , _type = 'nameData' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
-                fd = open(os.path.join(location), 'a')
+                fd = open(os.path.join(location), 'w')
                 fd.close()
                 pass
 
