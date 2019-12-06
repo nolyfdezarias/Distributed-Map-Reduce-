@@ -289,8 +289,8 @@ class Master():
                         print('We dont have workers ready now')
                         time.sleep(3)
                 else:
-                    self.look.release()
                     print('We dont have task to do now')
+                    self.look.release()
                     time.sleep(5)
             else:
                 self.look.release()
@@ -316,6 +316,15 @@ class Master():
                         print('I am the new Master :) XDDDDD')
                         print(len(self.task))
                         self.broadcast_server_thread.start()
+                        if len(self.task) == 0:
+                            for x in self.clients:
+                                aux,aux1 = x
+                                _a,_pull,_pub,_ping,_ = aux
+                                sub_addr = zmq_addr(_pub,'tcp',_a)
+                                print(sub_addr)
+                                self.sub_socket.connect(sub_addr)
+                                self.sub_socket.subscribe('')
+                                sendMessage(c=c,_dadress = _a,_dport = _pull , _type = 'task' , _message = 'task',_adress = self.host,_port = self.pull_port)
 
                         self.look.release()
                         break
@@ -465,6 +474,8 @@ class Master():
             if _type == 'Data':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
                 self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
+                print('I send a line')
+                #time.sleep(3)
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.write(data[str(MESSAGE)].decode())

@@ -45,7 +45,7 @@ def reduce1(key,values):
         res += int(elem)
     return res
 
-def sendMessage(_type,_message,_dadress,_dport,_adress,_port ,c = None, _size = 0 , _mapf = None , _redf = None, _name = '',_client = None):
+def sendMessage(_type,_message,_dadress,_dport,_adress,_port ,c = None, _size = 0 , _mapf = None , _redf = None, _name = '',_client = None,_file= None):
         s = c.socket(zmq.PUSH)
         pull_addr = zmq_addr(_dport,transport = 'tcp',host = _dadress)
         #print('the pull addr to ping')
@@ -61,7 +61,8 @@ def sendMessage(_type,_message,_dadress,_dport,_adress,_port ,c = None, _size = 
                 MAPF : _mapf ,
                 REDF : _redf ,
                 NAME : _name ,
-                CLIENT : _client
+                CLIENT : _client,
+                FILE : _file
 
         }
         dataSend = dill.dumps(data)

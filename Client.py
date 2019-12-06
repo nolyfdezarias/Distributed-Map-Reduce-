@@ -101,13 +101,20 @@ class Client():
                 fd = open(os.path.join(self.data), 'r+b')
 
                 pubMessage(s=self.pub_socket,_adress = self.host,_port=self.pull_port,_type='nameData',_file=self.data,_message='nameData',_size=size,_name=self.id)
-                
+                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='nameData',_file=self.data,_message='nameData',_size=size,_name=self.id)
+                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'task' , _message = 'task',_adress = self.host,_port = self.pull_port)
+           
+
                 while size > 0:
                     _read = fd.read( 4 * 1024 if 4 * 1024 < size else size)
                     size -= len(_read)
                     pubMessage(s= self.pub_socket,_adress = self.host,_port = self.pull_port,_type='Data',_message = _read,_file=self.data,_name=self.id,_size=len(_read))
+                    #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='Data',_file=self.data,_message=_read,_name=self.id,_size=len(_read))
+                
                 
                 pubMessage(s=self.pub_socket,_adress = self.host,_port = self.pull_port,_message = 1,_type='FinishC',_mapf=map1,_redf=reduce1,_file= self.data,_name=self.id)
+                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='FinishC',_file=self.data,_message=1,_name=self.id,_mapf=map1,_redf=reduce1)
+                
                 
                 fd.close()
 
