@@ -116,6 +116,11 @@ class Client():
             if _type == 'reciveData':
                 print('Server has taken the Data ')
             
+            if _type == 'sendAnswerF':
+                location = f'my {data[NAME]}'
+                fd = open(os.path.join(location), 'w')
+                fd.close()
+
             if _type == 'sendAnswer':
                 location = f'my {data[NAME]}'
                 fd = open(os.path.join(location), 'a')

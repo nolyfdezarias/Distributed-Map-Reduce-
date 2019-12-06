@@ -180,15 +180,22 @@ class Master():
                                         self.clients_red[(_adress , _port)] -= 1
                                         location = f'Ans_{_adress}_{_port}'
                                         fd = open(os.path.join(location), 'a')
-                                        
+                                        fd.close()
+
+                                        fd = open(os.path.join(location), 'r+b')
+                                        lines = fd.readlines()
+                                        fd.close()
+
                                         _key , _value = ans
                                         text = f'{_key} : {_value} \n'
-                                        fd.write(text)
-                                        fd.close()
+                                        
+                                        aux =[ x for x in lines if x.decode() == text]
+                                        if len(aux) == 0:
+                                            fd = open(os.path.join(location), 'a')
+                                            fd.write(text)
+                                            fd.close()
                                         
                                         self.pubMessage(_adress = -1,_port = -1,_type = 'WChange' , _name= location,_message = text)
-
-                                        #self.pubMessage
 
                                         if self.clients_red[(_adress , _port)] == 0:
                                             #print(f'I finish the red with the client {(_adress , _port)}')
@@ -207,11 +214,15 @@ class Master():
                                                     toping = _pingP
                                                     break
                                             
+                                            sendMessage(c=c,_dadress = _adress,_dport = _port , _type = 'sendAnswerF',_message = 'sendAnswerF' ,_name=location,_adress = self.host,_port = self.pull_port)
+                                                    
                                             for line in lines:
                                                 
                                                 if self.ping(_adress,toping,c):
                                                     sendMessage(c=c,_dadress = _adress,_dport = _port , _type = 'sendAnswer' , _message = line.decode(), _size= len(line),_name=location,_adress = self.host,_port = self.pull_port)
-                                                    
+                                                    print('Envie la linea')
+                                                    #time.sleep(2)
+
                                                 else:
                                                     print('Client is Down by Send')
                                                     todel = []
@@ -383,12 +394,14 @@ class Master():
                     aux,aux1 = x
                     _a,_p,_,_,_ = aux
                     location = f'Ans_{_a}_{_p}'
-                    fd = open(os.path.join(location), 'r+b')
-                    lines = fd.readlines()
-                    fd.close()
-                    for line in lines:
-                        sendMessage(c=c,_type = 'Files' , _message = line.decode() , _name=location,_dadress = data[ADRESS], _dport = data[PORT] , _adress = self.host , _port =self.pull_port)
-
+                    try:
+                        fd = open(os.path.join(location), 'r+b')
+                        lines = fd.readlines()
+                        fd.close()
+                        for line in lines:
+                            sendMessage(c=c,_type = 'Files' , _message = line.decode() , _name=location,_dadress = data[ADRESS], _dport = data[PORT] , _adress = self.host , _port =self.pull_port)
+                    except:
+                        pass
 
                 time.sleep(2)
                 print('I have send the Welcome message')
@@ -529,9 +542,11 @@ class Master():
                     self.look.release()
                 
             if _type == 'WChange':
+                self.look.acquire()
                 fd = open(os.path.join(data[NAME]), 'a')
                 fd.write(data[MESSAGE])
                 fd.close()
+                self.look.release()
 
 
     def make_map_task(self,location,adress,port):
