@@ -456,6 +456,7 @@ class Master():
 
             if _type == 'nameData':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
+                self.pubMessage(_adress =   data[ADRESS] ,_port = data[PORT] , _type = 'nameData' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.close()
@@ -463,6 +464,7 @@ class Master():
 
             if _type == 'Data':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
+                self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.write(data[str(MESSAGE)].decode())
@@ -470,6 +472,7 @@ class Master():
                 pass
             if _type == 'FinishC':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
+                self.pubMessage(_adress =   data[ADRESS],_port = data[PORT] , _type = 'FinishC' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME],_mapf=data[MAPF],_redf=data[REDF])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 self.clientsFuncs[(data[str(ADRESS)],data[str(PORT)])] = (data[str(MAPF)],data[str(REDF)])
                 
@@ -507,8 +510,8 @@ class Master():
                 host,pull,pub,ping,_ = data[MESSAGE]
                 sub_addr = zmq_addr(pub,'tcp',host)
                 print(sub_addr)
-                self.sub_socket.connect(sub_addr)
-                self.sub_socket.subscribe('')
+                #self.sub_socket.connect(sub_addr)
+                #self.sub_socket.subscribe('')
                 self.clients.append((data[MESSAGE],self.lastID))
 
                 self.look.release()
@@ -634,7 +637,7 @@ class Master():
                 print('No')
         return False
 
-    def pubMessage(self,_type,_adress,_port,_message,_size = 0 , _name = '',_mapf = None , _redf = None , _client = None, _nonBlock = 0):
+    def pubMessage(self,_type,_adress,_port,_message,_size = 0 , _name = '',_mapf = None , _redf = None , _client = None, _nonBlock = 0,_file =None):
         if self.leader or _nonBlock:
             data = {
                     ADRESS : _adress,
@@ -645,7 +648,8 @@ class Master():
                     MAPF : _mapf ,
                     REDF : _redf , 
                     CLIENT : _client,
-                    NAME : _name
+                    NAME : _name,
+                    FILE : _file
 
             }
         
