@@ -2,32 +2,18 @@
 from utils import * 
 
 class Master():
-    #def __init__(self,host,boss,serverHost = '', pull_port = None , pub_port = None , ping_port = None):
     def __init__(self,boss):
         __address = QNetworkInterface.allAddresses()
         ip = __address[2].toString()
 
         self.host = ip#host #socket.gethostbyname(socket.gethostname())
-        #print(f'my ip is {self.host} ')
         print('my ip is ' + self.host)
-        #self.server_pull_port = None
-        #self.server_pub_port = None
-        #self.server_sub_port = None
-        #self.server_ping_port = None
 
         self.leader = True
 
         if boss == 0:
             self.leader = False
 
-        #if serverHost == '':
-        #    self.serverHost = self.host
-        #else:
-        #    self.serverHost = serverHost
-        #    self.server_pull_port = pull_port
-        #    self.server_pub_port = pub_port
-        #    self.server_ping_port = ping_port
-        
         self.pull_port = None
         self.ping_port = None
         self.pub_port = None
@@ -44,32 +30,24 @@ class Master():
         self.clients_map = {}
         self.clients_red = {}
         self.workers = []
-        #self.Bworkers = []
         self.task = []
         self.buffer = {}
         self.look = Semaphore()
         self.lastID = 0
-        
-
-        pass
     
     def __call__(self):
         c = zmq.Context()
         self.pull_socket = c.socket(zmq.PULL)
-        #aa = f'tcp://{self.host}'
         aaa = 'tcp://' + self.host
         self.pull_port = self.pull_socket.bind_to_random_port(aaa)
-        #print(f'my pull port is {self.pull_port}')
         print('my pull port is ' + str(self.pull_port))
 
         self.pub_socket = c.socket(zmq.PUB)
         self.pub_port = self.pub_socket.bind_to_random_port(aaa)
-        #print(f'my pub port is {self.pub_port}')
         print('my pub port is ' + str(self.pub_port))
 
         self.ping_socket = c.socket(zmq.PULL)
         self.ping_port = self.ping_socket.bind_to_random_port(aaa)
-        #print(f'my ping port is {self.ping_port}')
         print('my ping port is ' + str(self.ping_port))
         self.sub_socket = c.socket(zmq.SUB)
 
@@ -85,10 +63,8 @@ class Master():
                 print('I dont found a Server to support')
                 return
             self.make_threads(c)
-            #sub_addr = zmq_addr(self.server_pub_port,transport = 'tcp',host = self.serverHost)
             self.sub_socket.connect(sub_addr)
             self.sub_socket.subscribe('')
-            #todo poner un canal de escucha si no eres lider
             serverHost = sub_addr.split('//')[1].split(':')[0]
             pull_port = int(sub_addr.split('//')[1].split(':')[1])
 
@@ -115,8 +91,6 @@ class Master():
         print('Server is wait for workers and Clients message')
 
         self.p_thread = Thread(target=self.__ping,args=(c,))
-        #self.p_thread.start()
-        #print('Server is wait for workers and Clients message')
 
         self.broadcast_server_thread = Thread(target=waiting_to_broadcast,args=(self.pull_port,))
         if self.leader:
@@ -124,7 +98,6 @@ class Master():
             print('Server broadcast is ready')
 
     def doingTask(self,c):
-        #c = zmq.Context()
         while True:
             print('I am in the while True')
             print(len(self.task))
@@ -142,40 +115,31 @@ class Master():
                             self.look.acquire()
                             if len(self.task) > 0:
                                 _adress , _port , _data , _type = self.task[0]
-                                #print(f'this are the client {_adress} : {_port}')
                                 print('this are the client ' + _adress + ' : ' + str(_port))
                                 mapf , redf = self.clientsFuncs[(_adress , _port)]
                                 aux , aux1 = x
                                 _wadress, _wport , _,_,_ = aux
                                 print('I send this data')
-                                #print(_data)
                                 val , ans , _type = sendTask(c = c,_name= _type,_message = _data,_dadress = _wadress , _dport = _wport ,_adress = self.host , _port = self.pull_port,_mapf=mapf,_redf=redf )
                                 if val :
-                                    #print(f'I have finish the task {self.task.pop(0)}')
                                     print('I have finish the task ' + str(self.task.pop(0)))
-                                    #time.sleep(1)
                                     if _type == 0:
                                         
                                         try :
-                                            #print(f'this are the client {_adress} : {_port}')
                                             print('this are the client ' + _adress + ' : ' + str(_port))
                                             self.buffer[(_adress , _port)].append((ans,(_adress , _port)))
                                         except : 
-                                            #print(f'this are the client {_adress} : {_port}')
                                             print('this are the client ' + _adress + ' : ' + str(_port))
                                             self.buffer[(_adress , _port)] = [ (ans,(_adress , _port) )]
 
                                         self.clients_map[(_adress , _port)] -= 1
                                         if self.clients_map[(_adress , _port)] == 0:
                                             self.make_reduce_task(self.buffer[(_adress , _port)])
-                                            #print(f'I finish the map with the client {(_adress , _port)}')
                                             print('I finish the map with the client  ' + _adress + ' : ' + str(_port))
-                                            #print(self.buffer[(_adress , _port)][0])
                                         
                                         self.pubMessage(_adress = -1,_port = -1,_type = 'Change' , _name= 0,_message = (self.task,self.buffer,self.clients_map,self.clients_red))
 
                                     else:
-                                        #print(f'this are the client {_adress} : {_port}')
                                         print('this are the client ' + _adress + ' : ' + str(_port))
                                         self.clients_red[(_adress , _port)] -= 1
                                         location = f'Ans_{_adress}_{_port}'
@@ -198,13 +162,11 @@ class Master():
                                         self.pubMessage(_adress = -1,_port = -1,_type = 'WChange' , _name= location,_message = text)
 
                                         if self.clients_red[(_adress , _port)] == 0:
-                                            #print(f'I finish the red with the client {(_adress , _port)}')
                                             print('I finish the red with the client  ' + _adress + ' : ' + str(_port))
 
                                             fd = open(os.path.join(location), 'r+b')
                                             lines = fd.readlines()
                                             fd.close()
-                                            #todo enviar pa que todos los master se enteren
                                             
                                             toping = -1
                                             for x in self.clients:
@@ -221,7 +183,6 @@ class Master():
                                                 if self.ping(_adress,toping,c):
                                                     sendMessage(c=c,_dadress = _adress,_dport = _port , _type = 'sendAnswer' , _message = line.decode(), _size= len(line),_name=location,_adress = self.host,_port = self.pull_port)
                                                     print('Envie la linea')
-                                                    #time.sleep(2)
 
                                                 else:
                                                     print('Client is Down by Send')
@@ -236,39 +197,29 @@ class Master():
                                                         aux,aux1 = x
                                                         _host,pull,_,_,_ = aux
                                                         if _host == _adress and pull == _port:
-                                                            #todel.append(x)
                                                             self.clients.remove(x)
                                                             self.clients_map.pop((_adress , _port))
                                                             self.clients_red.pop((_adress , _port))
                                                             self.clientsFuncs.pop((_adress , _port))
-                                                            #self.buffer.pop((_adress , _port))
                                                             break
                                                     
                                                     
                                                     break
 
-                                                    
-
-                                            #print(f'I have finished with the client {_adress} : {_port}')
                                             print('I finish finished with the client  ' + _adress + ' : ' + str(_port))
                                             
                                             sendMessage(c=c,_dadress = _adress,_dport = _port ,  _type = 'FinishAnswer' , _message = 'FinishAnswer',_adress = self.host,_port = self.pull_port)
                                             sendMessage(c=c,_dadress = _adress,_dport = toping ,  _type = 'goBye' , _message = 'FinishAnswer',_adress = self.host,_port = self.pull_port)
 
-                                            #todel = []
                                             for x in self.clients:
                                                 aux,aux1 = x
                                                 _host,pull,_,_,_ = aux
                                                 if _host == _adress and pull == _port:
-                                                    #todel.append(x)
                                                     self.clients.remove(x)
                                                     self.clients_map.pop((_adress , _port))
                                                     self.clients_red.pop((_adress , _port))
                                                     self.clientsFuncs.pop((_adress , _port))
-                                                    #self.buffer.pop((_adress , _port))
                                                     break
-                                            #for x in todel:
-                                            #    self.clients.remove(x)
                                             self.pubMessage(_adress = -1,_port = -1,_type = 'Change' , _name= 2,_message = (self.task,self.clients_red,self.clients_map,self.clientsFuncs,self.clients))
 
                                         else:
@@ -338,7 +289,6 @@ class Master():
                             self.server_pull_port = _pull
                             self.server_pub_port = _pub
                             self.server_ping_port = _ping
-                            #print(f'the current Server ist {x}')
                             print('the current Server ist ' + str(x))
                             self.look.release()
                             break
@@ -464,30 +414,22 @@ class Master():
            
 
             if _type == 'nameData':
-                #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                #self.pubMessage(_adress =   data[ADRESS] ,_port = data[PORT] , _type = 'nameData' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'w')
                 fd.close()
                 pass
 
             if _type == 'Data':
-                #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                #self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 print('I send a line')
-                #time.sleep(3)
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.write(data[str(MESSAGE)].decode())
                 fd.close()
                 pass
             if _type == 'FinishC':
-                #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                #self.pubMessage(_adress =   data[ADRESS],_port = data[PORT] , _type = 'FinishC' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME],_mapf=data[MAPF],_redf=data[REDF])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 self.clientsFuncs[(data[str(ADRESS)],data[str(PORT)])] = (data[str(MAPF)],data[str(REDF)])
                 
-                #print(f'I get the data from Client:{data[str(ADRESS)]} : {data[str(PORT)]} ')
                 print('I get the data from Client:' + data[str(ADRESS)] + ' : ' + str(data[str(PORT)]))
                 self.look.acquire()
                 
@@ -499,11 +441,8 @@ class Master():
                     time.sleep(2)
             
                 self.look.release()
-                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'reciveData' , _message = 'reciveData',_adress = self.host,_port = self.pull_port)
             
                 
-                
-            
             if _type == 'FinishWC':
                 self.look.acquire()
                 aux,aux1 = data[MESSAGE]
@@ -535,8 +474,6 @@ class Master():
                 host,pull,pub,ping,_ = data[MESSAGE]
                 sub_addr = zmq_addr(pub,'tcp',host)
                 print(sub_addr)
-                #self.sub_socket.connect(sub_addr)
-                #self.sub_socket.subscribe('')
                 self.clients.append((data[MESSAGE],self.lastID))
 
                 self.look.release()
@@ -591,7 +528,6 @@ class Master():
         
         print(len( self.task))
         self.clients_map[(adress,port)] = len(self.task) - initVal
-        #print(f'the client {adress}:{port} needs {len(self.task) - initVal} maps ')
         print('the client ' + adress + ':' + str(port) + ' needs ' + str(len(self.task) - initVal) + ' maps ')
         pass
 
@@ -613,9 +549,7 @@ class Master():
 
         self.buffer.pop((_adress,_port))
         self.clients_red[(_adress,_port)] = len(self.task) - initVal
-        #print(f'the client {_adress}:{_port} needs {len(self.task) - initVal} reducers')
         print('the client ' + _adress + ':' + str(_port) + ' needs ' + str(len(self.task) - initVal) + ' reducers ')
-        #time.sleep(5)
         
         
 
@@ -683,8 +617,5 @@ class Master():
 
 
 
-#a = Master(host=input('> mi direccion'),boss=int(input('>tu eres master ')),serverHost=input('>master adress ' ) , pull_port= int(input('>master pull ' )) , pub_port= int(input('>master pub ')), ping_port=int(input('> master ping ')))
 a = Master(boss=int(input('>tu eres master ')))
 a()
-
-#todo enviar ping al client eventualmente(cada vez q se finalice una tarea asociada a el)

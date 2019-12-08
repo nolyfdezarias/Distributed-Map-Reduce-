@@ -2,22 +2,17 @@
 from utils import * 
 
 class Client():
-    #def __init__(self,host,serverHost,pull_port,data):
     def __init__(self,data):
-        #self.serverHost = serverHost
         __address = QNetworkInterface.allAddresses()
         ip = __address[2].toString()
         self.host = ip#host#socket.gethostbyname(socket.gethostname())
-        #print(f'my ip is {self.host} ')
         print('my ip is ' + self.host)
         self.pull_port = None
         self.ping_port = None
         self.pub_port = None
         self.sub_port = None
-        #self.server_pull_port = pull_port
         self.ping_socket = None
         self.pub_socket = None
-        #self.sub_socket = None
         self.pull_socket = None
 
         self.data = data
@@ -39,7 +34,6 @@ class Client():
         self.ping_socket = c.socket(zmq.PULL)
         self.ping_port = self.ping_socket.bind_to_random_port('tcp://' + self.host)
 
-        #self.sub_socket = c.socket(zmq.SUB)
         _addr = do_broadcast(BROADCAST_PORT)
         if _addr == '':
             print('I dont found a Server ')
@@ -101,19 +95,15 @@ class Client():
                 fd = open(os.path.join(self.data), 'r+b')
 
                 pubMessage(s=self.pub_socket,_adress = self.host,_port=self.pull_port,_type='nameData',_file=self.data,_message='nameData',_size=size,_name=self.id)
-                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='nameData',_file=self.data,_message='nameData',_size=size,_name=self.id)
-                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'task' , _message = 'task',_adress = self.host,_port = self.pull_port)
            
 
                 while size > 0:
                     _read = fd.read( 4 * 1024 if 4 * 1024 < size else size)
                     size -= len(_read)
                     pubMessage(s= self.pub_socket,_adress = self.host,_port = self.pull_port,_type='Data',_message = _read,_file=self.data,_name=self.id,_size=len(_read))
-                    #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='Data',_file=self.data,_message=_read,_name=self.id,_size=len(_read))
                 
                 
                 pubMessage(s=self.pub_socket,_adress = self.host,_port = self.pull_port,_message = 1,_type='FinishC',_mapf=map1,_redf=reduce1,_file= self.data,_name=self.id)
-                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)],_adress = self.host,_port=self.pull_port,_type='FinishC',_file=self.data,_message=1,_name=self.id,_mapf=map1,_redf=reduce1)
                 
                 
                 fd.close()
@@ -138,6 +128,5 @@ class Client():
                 print('I get my Answer')
                 break
 
-#a = Client(host = input('- My ip adress '),serverHost=input('> Master adress ') , pull_port = int(input('> master pullport ')), data = input('> dame el archivo '))
 a = Client( data = input('> dame el archivo '))
 a()

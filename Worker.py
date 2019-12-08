@@ -2,9 +2,7 @@
 from utils import * 
 
 class Worker():
-    #def __init__(self,host,serverHost,pull_port):
     def __init__(self):
-        #self.serverHost = serverHost
         __address = QNetworkInterface.allAddresses()
         ip = __address[2].toString()
         self.host = ip#host#socket.gethostbyname(socket.gethostname())
@@ -13,10 +11,8 @@ class Worker():
         self.ping_port = None
         self.pub_port = None
         self.sub_port = None
-        #self.server_pull_port = pull_port
         self.ping_socket = None
         self.pub_socket = None
-        #self.sub_socket = None
         self.pull_socket = None
 
         self.data = None
@@ -35,8 +31,6 @@ class Worker():
         self.ping_socket = c.socket(zmq.PULL)
         self.ping_port = self.ping_socket.bind_to_random_port('tcp://' + self.host)
 
-        #self.sub_socket = c.socket(zmq.SUB)
-        
         _addr = do_broadcast(BROADCAST_PORT)
         if _addr == '':
             print('I dont found a Server ')
@@ -110,7 +104,5 @@ class Worker():
         print('I send the answer')
     
 
-
-#a = Worker(host = input('-My ip '),serverHost=input('> Master adress ') , pull_port = int(input('> master pullport ')))
 a = Worker()
 a()
