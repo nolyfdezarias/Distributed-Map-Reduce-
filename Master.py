@@ -475,7 +475,7 @@ class Master():
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
                 #self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 print('I send a line')
-                time.sleep(3)
+                #time.sleep(3)
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.write(data[str(MESSAGE)].decode())
