@@ -48,7 +48,6 @@ def reduce1(key,values):
 def sendMessage(_type,_message,_dadress,_dport,_adress,_port ,c = None, _size = 0 , _mapf = None , _redf = None, _name = '',_client = None,_file= None):
         s = c.socket(zmq.PUSH)
         pull_addr = zmq_addr(_dport,transport = 'tcp',host = _dadress)
-        #print('the pull addr to ping')
         print(pull_addr)
         s.connect(pull_addr)
         print('here sending')
@@ -78,7 +77,6 @@ def sendTask(_message,_dadress,_dport,_adress,_port , _size = 0 ,c = None, _mapf
         pull_addr = zmq_addr(_dport,transport = 'tcp',host = _dadress)
         print(pull_addr)
         s.connect(pull_addr)
-        #print('here sending')
         data = {
                 ADRESS : _adress,
                 PORT : s1_port , 
