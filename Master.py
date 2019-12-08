@@ -465,7 +465,7 @@ class Master():
 
             if _type == 'nameData':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                self.pubMessage(_adress =   data[ADRESS] ,_port = data[PORT] , _type = 'nameData' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
+                #self.pubMessage(_adress =   data[ADRESS] ,_port = data[PORT] , _type = 'nameData' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'w')
                 fd.close()
@@ -473,9 +473,9 @@ class Master():
 
             if _type == 'Data':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
+                #self.pubMessage(_adress =   data[ADRESS],_port = data[PORT], _type = 'Data' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME])
                 print('I send a line')
-                #time.sleep(3)
+                time.sleep(3)
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 fd = open(os.path.join(location), 'a')
                 fd.write(data[str(MESSAGE)].decode())
@@ -483,22 +483,36 @@ class Master():
                 pass
             if _type == 'FinishC':
                 #location = f'{data[str(FILE)]}_{data[str(NAME)]}'
-                self.pubMessage(_adress =   data[ADRESS],_port = data[PORT] , _type = 'FinishC' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME],_mapf=data[MAPF],_redf=data[REDF])
+                #self.pubMessage(_adress =   data[ADRESS],_port = data[PORT] , _type = 'FinishC' , _message = data[MESSAGE] ,_file = data[FILE],_name=data[NAME],_mapf=data[MAPF],_redf=data[REDF])
                 location = data[str(FILE)] + '_' + str(data[str(NAME)])
                 self.clientsFuncs[(data[str(ADRESS)],data[str(PORT)])] = (data[str(MAPF)],data[str(REDF)])
                 
                 #print(f'I get the data from Client:{data[str(ADRESS)]} : {data[str(PORT)]} ')
                 print('I get the data from Client:' + data[str(ADRESS)] + ' : ' + str(data[str(PORT)]))
                 self.look.acquire()
-                self.make_map_task(location, data[str(ADRESS)], data[str(PORT)] )
+                
+                if self.leader:
+                    self.make_map_task(location, data[str(ADRESS)], data[str(PORT)] )
+                    sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'reciveData' , _message = 'reciveData',_adress = self.host,_port = self.pull_port)
+                    self.pubMessage(_adress = data[ADRESS],_port = data[PORT],_type = 'FinishWC' , _message = (self.task,self.clients_map[(data[ADRESS],data[PORT])]),_mapf=data[MAPF],_redf=data[REDF])
+                    print('I send the things of the client to the another Master')
+                    time.sleep(2)
+            
                 self.look.release()
-                sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'reciveData' , _message = 'reciveData',_adress = self.host,_port = self.pull_port)
+                #sendMessage(c=c,_dadress = data[str(ADRESS)],_dport = data[str(PORT)] , _type = 'reciveData' , _message = 'reciveData',_adress = self.host,_port = self.pull_port)
             
                 
-                pass
+                
             
-            if _type == 'newMasterIn':
-                pass
+            if _type == 'FinishWC':
+                self.look.acquire()
+                aux,aux1 = data[MESSAGE]
+                self.task = list(aux)
+                self.clients_map[(data[ADRESS],data[PORT])] = int(aux1)
+                self.clientsFuncs[(data[ADRESS],data[PORT])] = (data[MAPF],data[REDF])
+                print(f'I get the things of the Client {data[ADRESS]} : {data[PORT]}')
+                self.look.release()
+                
             if _type == 'newWorker':
                 self.look.acquire()
 
